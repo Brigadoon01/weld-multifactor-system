@@ -18,7 +18,7 @@ export const sourceExperiments: Experiment[] = [
     massLossPercent: 13.36,
     corrosionRate: 3.28,
     finalMeasurementDay: 28,
-    ocpMonitoredToDay: 9,
+    ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
     microstructureScore: null,
     microstructureNote:
@@ -31,7 +31,6 @@ export const sourceExperiments: Experiment[] = [
     visualInspection: "Uniform bead appearance reported; visual appearance is not a quality conclusion.",
     sourceWarnings: [
       "One coupon only; no dispersion or inferential statistics are available.",
-      "OCP monitoring ceased at Day 9.",
     ],
   },
   {
@@ -45,7 +44,7 @@ export const sourceExperiments: Experiment[] = [
     massLossPercent: 17.1,
     corrosionRate: 3.19,
     finalMeasurementDay: 28,
-    ocpMonitoredToDay: 9,
+    ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
     microstructureScore: null,
     microstructureNote:
@@ -58,7 +57,6 @@ export const sourceExperiments: Experiment[] = [
     visualInspection: "Uniform bead appearance reported; visual appearance is not a quality conclusion.",
     sourceWarnings: [
       "One coupon only; no dispersion or inferential statistics are available.",
-      "OCP monitoring ceased at Day 9.",
     ],
   },
   {
@@ -72,7 +70,7 @@ export const sourceExperiments: Experiment[] = [
     massLossPercent: 12.31,
     corrosionRate: 3.25,
     finalMeasurementDay: 28,
-    ocpMonitoredToDay: 9,
+    ocpMonitoredToDay: 28,
     microstructureStatus: "missing",
     microstructureScore: null,
     microstructureNote: "SEM, EDS, and XRD characterization were not completed for this condition.",
@@ -98,7 +96,7 @@ export const sourceExperiments: Experiment[] = [
     massLossPercent: 21.78,
     corrosionRate: 4.39,
     finalMeasurementDay: 28,
-    ocpMonitoredToDay: 9,
+    ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
     microstructureScore: null,
     microstructureNote:
@@ -124,7 +122,7 @@ export const sourceExperiments: Experiment[] = [
     massLossPercent: 16.32,
     corrosionRate: 4.12,
     finalMeasurementDay: 28,
-    ocpMonitoredToDay: 9,
+    ocpMonitoredToDay: 28,
     microstructureStatus: "missing",
     microstructureScore: null,
     microstructureNote: "SEM, EDS, and XRD characterization were not completed for this condition.",
@@ -150,7 +148,7 @@ export const sourceExperiments: Experiment[] = [
     massLossPercent: 15.31,
     corrosionRate: 4.14,
     finalMeasurementDay: 28,
-    ocpMonitoredToDay: 9,
+    ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
     microstructureScore: null,
     microstructureNote:
@@ -176,7 +174,7 @@ export const sourceExperiments: Experiment[] = [
     massLossPercent: 16.86,
     corrosionRate: 3.08,
     finalMeasurementDay: 28,
-    ocpMonitoredToDay: 9,
+    ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
     microstructureScore: null,
     microstructureNote:
