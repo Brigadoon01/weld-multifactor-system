@@ -16,7 +16,7 @@ import { PerformanceRadar } from "./components/PerformanceRadar";
 
 type View = "overview" | "registry" | "corrosion" | "evidence" | "scoring" | "report";
 
-const STORAGE_KEY = "weldscope-research-lab-v7";
+const STORAGE_KEY = "weldscope-research-lab-v8";
 
 const navigation: Array<{ id: View; label: string; icon: string }> = [
   { id: "overview", label: "Dashboard", icon: "▦" },
@@ -29,7 +29,7 @@ const navigation: Array<{ id: View; label: string; icon: string }> = [
 
 const sourceNotice = "Your data stays in this browser.";
 
-const formatRate = (value: number | null) => (value === null ? "—" : `${value.toFixed(2)} mm/yr`);
+const formatRate = (value: number | null) => (value === null ? "—" : `${value.toFixed(2)} mg/mm²/yr`);
 const formatPercent = (value: number | null) => (value === null ? "—" : `${value.toFixed(2)}%`);
 const formatScore = (value: number | null) => (value === null ? "—" : Math.round(value).toString());
 const numericValue = (value: string) => (value.trim() === "" ? null : Number(value));
@@ -110,7 +110,7 @@ export default function App() {
   const [activeView, setActiveView] = useState<View>("overview");
   const [selectedId, setSelectedId] = useState("smaw-170");
   const [weights, setWeights] = useState<ScoringWeights>(defaultWeights);
-  const [corrosionCeiling, setCorrosionCeiling] = useState(5);
+  const [corrosionCeiling, setCorrosionCeiling] = useState(40);
   const [hardnessSpreadLimit, setHardnessSpreadLimit] = useState(50);
   const [showNewExperiment, setShowNewExperiment] = useState(false);
   const [importMessage, setImportMessage] = useState("");
@@ -170,7 +170,7 @@ export default function App() {
   const resetResearchData = () => {
     setExperiments(sourceExperiments);
     setWeights(defaultWeights);
-    setCorrosionCeiling(5);
+    setCorrosionCeiling(40);
     setHardnessSpreadLimit(50);
     setSelectedId("smaw-170");
     setImportMessage("Restored the report-backed starter dataset.");
@@ -205,7 +205,7 @@ export default function App() {
       "Current A",
       "Travel speed mm s",
       "Mass loss percent",
-      "Penetration rate mm yr",
+      "Corrosion rate mg mm2 yr",
       "Final measurement day",
       "Microstructure status",
       "Microstructure score",
@@ -294,7 +294,7 @@ export default function App() {
             <div>
               <h2>Corrosion rate</h2>
             </div>
-            <span className="unit-label">Lower is better • mm/year</span>
+            <span className="unit-label">Lower is better • mg/mm²/yr</span>
           </div>
           <div className="rate-chart" role="img" aria-label="Bar chart comparing penetration rates by weld condition">
             {orderedByCorrosion.map((experiment) => {
@@ -363,7 +363,7 @@ export default function App() {
                 <th>Current</th>
                 <th>Travel speed</th>
                 <th>Mass loss</th>
-                <th>Penetration rate</th>
+                <th>Corrosion rate</th>
                 <th>Final reading</th>
                 <th>Evidence</th>
                 <th aria-label="Open record" />
@@ -420,23 +420,23 @@ export default function App() {
               <NumberField label="Final measurement" suffix="day" value={selected.finalMeasurementDay} onChange={(value) => updateExperiment(selected.id, { finalMeasurementDay: numericValue(value) })} />
               <NumberField label="Exposed area" suffix="mm²" value={area} disabled onChange={() => undefined} />
               <NumberField label="OCP monitored through" suffix="day" value={selected.ocpMonitoredToDay} onChange={(value) => updateExperiment(selected.id, { ocpMonitoredToDay: numericValue(value) })} />
-              <NumberField label="Reported penetration rate" suffix="mm/yr" value={selected.corrosionRate} onChange={(value) => updateExperiment(selected.id, { corrosionRate: numericValue(value) })} />
+              <NumberField label="Reported corrosion rate" suffix="mg/mm²/yr" value={selected.corrosionRate} onChange={(value) => updateExperiment(selected.id, { corrosionRate: numericValue(value) })} />
             </div>
             <div className="inline-action-row">
               <button
                 className="secondary-button"
-                disabled={penetrationRate === null}
-                onClick={() => updateExperiment(selected.id, { corrosionRate: penetrationRate })}
+                disabled={areaNormalisedRate === null}
+                onClick={() => updateExperiment(selected.id, { corrosionRate: areaNormalisedRate })}
               >
-                Use calculated penetration rate
+                Use calculated corrosion rate
               </button>
-              <span>Uses ASTM G1-style density conversion with AISI 304 density of 7.93 g/cm³.</span>
+              <span>Calculated as mass loss / (exposed area 360 mm² × exposure duration) × 365 days/yr.</span>
             </div>
           </article>
           <aside className="analysis-stack">
             <article className="panel calc-card">
               <span className="eyebrow">Mass-loss rate</span>
-              <div className="calc-value"><strong>{areaNormalisedRate === null ? "—" : areaNormalisedRate.toFixed(2)}</strong><span>mg/mm²/year</span></div>
+              <div className="calc-value"><strong>{areaNormalisedRate === null ? "—" : areaNormalisedRate.toFixed(2)}</strong><span>mg/mm²/yr</span></div>
               <p>{formatPercent(selected.massLossPercent)} total mass loss</p>
             </article>
             <article className="panel calc-card calc-card--accent">
@@ -575,7 +575,7 @@ export default function App() {
         <article className="panel threshold-panel">
           <span className="eyebrow">Limits</span>
           <h2>Score limits</h2>
-          <NumberField label="Corrosion score ceiling" suffix="mm/yr" value={corrosionCeiling} onChange={(value) => setCorrosionCeiling(Number(value) || 0)} />
+          <NumberField label="Corrosion score ceiling" suffix="mg/mm²/yr" value={corrosionCeiling} onChange={(value) => setCorrosionCeiling(Number(value) || 0)} />
           <NumberField label="Hardness spread limit" suffix="BHN" value={hardnessSpreadLimit} onChange={(value) => setHardnessSpreadLimit(Number(value) || 0)} />
           <details className="data-note"><summary>How scores work</summary><p>Lower corrosion rates and a smaller hardness spread score higher. Microstructure is entered from your reviewed evidence.</p></details>
         </article>

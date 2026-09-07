@@ -3,7 +3,7 @@ import type { Experiment, ScoreResult, ScoringWeights } from "./types";
 export const clamp = (value: number, minimum = 0, maximum = 100) =>
   Math.min(maximum, Math.max(minimum, value));
 
-export function corrosionScore(rate: number | null, ceiling = 5, target = 2) {
+export function corrosionScore(rate: number | null, ceiling = 40, target = 20) {
   if (rate === null || !Number.isFinite(rate)) return null;
   return clamp(((ceiling - rate) / (ceiling - target)) * 100);
 }
