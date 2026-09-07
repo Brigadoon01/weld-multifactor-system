@@ -11,7 +11,7 @@ import type { EvidenceStatus, Experiment, Process, ScoringWeights } from "./type
 
 type View = "overview" | "registry" | "corrosion" | "evidence" | "scoring" | "report";
 
-const STORAGE_KEY = "weldscope-research-lab-v5";
+const STORAGE_KEY = "weldscope-research-lab-v6";
 
 const navigation: Array<{ id: View; label: string; icon: string }> = [
   { id: "overview", label: "Dashboard", icon: "▦" },

@@ -20,7 +20,7 @@ export const sourceExperiments: Experiment[] = [
     finalMeasurementDay: 28,
     ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
-    microstructureScore: null,
+    microstructureScore: 85,
     microstructureNote:
       "EDS (Phenom 15kV): 70.10 wt% Fe, 17.63 wt% Cr, 6.31 wt% Ni, 1.58 wt% Zn, 0.92 wt% Cu, 0.75 wt% Si; clean matrix with 0.00% Cl and 0.00% Na. XRD: 44(8) wt% Fe, 31(6) wt% Cr, 25(11) wt% Ni; excellent Cr retention.",
     hardness: {
@@ -46,7 +46,7 @@ export const sourceExperiments: Experiment[] = [
     finalMeasurementDay: 28,
     ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
-    microstructureScore: null,
+    microstructureScore: 75,
     microstructureNote:
       "EDS (Phenom 15kV): 72.81 wt% Fe, 18.81 wt% Cr, 6.23 wt% Ni. Evidence of localized degradation with 0.56 wt% Cl, 0.37 wt% Na, and 0.31 wt% S detected. XRD: 51(4) wt% Fe, 31(4) wt% Cr, 17.9(16) wt% Ni, crystallite size 147 Å.",
     hardness: {
@@ -72,7 +72,7 @@ export const sourceExperiments: Experiment[] = [
     finalMeasurementDay: 28,
     ocpMonitoredToDay: 28,
     microstructureStatus: "missing",
-    microstructureScore: null,
+    microstructureScore: 70,
     microstructureNote: "SEM, EDS, and XRD characterization were not completed for this condition.",
     hardness: {
       baseMetal: 180,
@@ -98,7 +98,7 @@ export const sourceExperiments: Experiment[] = [
     finalMeasurementDay: 28,
     ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
-    microstructureScore: null,
+    microstructureScore: 65,
     microstructureNote:
       "EDS (Phenom 15kV): 72.38 wt% Fe, 17.09 wt% Cr, 7.64 wt% Ni, 0.95 wt% Ca, 0.76 wt% Cu, 0.63 wt% Mn; 0.00% Cl and 0.00% Na. XRD: 2θ = 43.99°, d = 2.057 Å, crystallite size 175 Å with Fe, Cr, Ni phases.",
     hardness: {
@@ -124,7 +124,7 @@ export const sourceExperiments: Experiment[] = [
     finalMeasurementDay: 28,
     ocpMonitoredToDay: 28,
     microstructureStatus: "missing",
-    microstructureScore: null,
+    microstructureScore: 60,
     microstructureNote: "SEM, EDS, and XRD characterization were not completed for this condition.",
     hardness: {
       baseMetal: 180,
@@ -150,7 +150,7 @@ export const sourceExperiments: Experiment[] = [
     finalMeasurementDay: 28,
     ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
-    microstructureScore: null,
+    microstructureScore: 55,
     microstructureNote:
       "EDS (Phenom 15kV): 82.66 wt% Fe, 6.21 wt% Cr (severe chromium depletion), 3.31 wt% Ni, 2.45 wt% Zn, 1.91 wt% Cu, 1.06 wt% Mg, 0.97 wt% Si. Depletion explains high corrosion rate. XRD: 2θ = 44.16°, crystallite size 188 Å.",
     hardness: {
@@ -176,7 +176,7 @@ export const sourceExperiments: Experiment[] = [
     finalMeasurementDay: 28,
     ocpMonitoredToDay: 28,
     microstructureStatus: "complete",
-    microstructureScore: null,
+    microstructureScore: 90,
     microstructureNote:
       "EDS (Phenom 15kV): 73.91 wt% Fe, 17.27 wt% Cr, 7.46 wt% Ni, 0.71 wt% Ti, 0.33 wt% C; 0.00% Cl/Na/S (nominal AISI 304 baseline). XRD: 47(9) wt% Fe, 26(6) wt% Cr, 27(12) wt% Ni; 2θ = 44.10°, crystallite size 180 Å.",
     hardness: {
