@@ -2,16 +2,21 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { defaultWeights, sourceExperiments } from "./data";
 import {
   calculateCorrosionRate,
+  calculateMassLossPercent,
   corrosionScore,
   hardnessScore,
   qualityIssues,
   scoreExperiment,
 } from "./scoring";
 import type { EvidenceStatus, Experiment, Process, ScoringWeights } from "./types";
+import { OcpChart } from "./components/OcpChart";
+import { MassLossChart } from "./components/MassLossChart";
+import { EdsChart } from "./components/EdsChart";
+import { PerformanceRadar } from "./components/PerformanceRadar";
 
 type View = "overview" | "registry" | "corrosion" | "evidence" | "scoring" | "report";
 
-const STORAGE_KEY = "weldscope-research-lab-v6";
+const STORAGE_KEY = "weldscope-research-lab-v7";
 
 const navigation: Array<{ id: View; label: string; icon: string }> = [
   { id: "overview", label: "Dashboard", icon: "▦" },
@@ -109,6 +114,7 @@ export default function App() {
   const [hardnessSpreadLimit, setHardnessSpreadLimit] = useState(50);
   const [showNewExperiment, setShowNewExperiment] = useState(false);
   const [importMessage, setImportMessage] = useState("");
+  const [corrosionChartTab, setCorrosionChartTab] = useState<"ocp" | "massLoss">("ocp");
   const importInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -131,6 +137,11 @@ export default function App() {
     (left, right) => (left.corrosionRate ?? Number.MAX_VALUE) - (right.corrosionRate ?? Number.MAX_VALUE),
   );
   const corrosionLeader = orderedByCorrosion[0];
+  const corrosionLeaderScore = corrosionLeader ? scores.get(corrosionLeader.id) : undefined;
+  const orderedByComposite = [...welds].sort(
+    (left, right) => (scores.get(right.id)?.composite ?? 0) - (scores.get(left.id)?.composite ?? 0),
+  );
+  const compositeLeader = orderedByComposite[0];
   const totalWeight = Object.values(weights).reduce((sum, value) => sum + value, 0);
   const missingFactorCount = welds.reduce(
     (count, experiment) => count + (scores.get(experiment.id)?.totalFactors ?? 0) - (scores.get(experiment.id)?.completedFactors ?? 0),
@@ -138,7 +149,14 @@ export default function App() {
   );
 
   const updateExperiment = (id: string, patch: Partial<Experiment>) => {
-    setExperiments((current) => current.map((experiment) => (experiment.id === id ? { ...experiment, ...patch } : experiment)));
+    setExperiments((current) => current.map((experiment) => {
+      if (experiment.id !== id) return experiment;
+      const updated = { ...experiment, ...patch };
+      if ("initialMass" in patch || "finalMass" in patch) {
+        updated.massLossPercent = calculateMassLossPercent(updated.initialMass, updated.finalMass);
+      }
+      return updated;
+    }));
   };
 
   const updateHardness = (id: string, key: keyof Experiment["hardness"], value: string) => {
@@ -303,7 +321,11 @@ export default function App() {
             <strong>{corrosionLeader?.specimen ?? "No condition"}</strong>
             <p>{formatRate(corrosionLeader?.corrosionRate ?? null)}</p>
           </div>
-          <p className="compact-copy">Complete hardness and microstructure inputs to compare final scores.</p>
+          <p className="compact-copy">
+            {corrosionLeaderScore?.composite === null
+              ? "Complete the missing inputs to calculate its final score."
+              : `Composite score: ${formatScore(corrosionLeaderScore?.composite ?? null)} / 100.`}
+          </p>
           <button className="text-action" onClick={() => openExperiment(corrosionLeader?.id ?? selectedId)}>View condition <span>→</span></button>
         </article>
       </section>
@@ -415,6 +437,7 @@ export default function App() {
             <article className="panel calc-card">
               <span className="eyebrow">Mass-loss rate</span>
               <div className="calc-value"><strong>{areaNormalisedRate === null ? "—" : areaNormalisedRate.toFixed(2)}</strong><span>mg/mm²/year</span></div>
+              <p>{formatPercent(selected.massLossPercent)} total mass loss</p>
             </article>
             <article className="panel calc-card calc-card--accent">
               <span className="eyebrow">Corrosion score</span>
@@ -423,6 +446,28 @@ export default function App() {
             </article>
           </aside>
         </section>
+
+        <div className="chart-tabs">
+          <button
+            className={`chart-tab ${corrosionChartTab === "ocp" ? "is-active" : ""}`}
+            onClick={() => setCorrosionChartTab("ocp")}
+          >
+            📈 28-Day OCP Potential Curves (mV vs. SCE)
+          </button>
+          <button
+            className={`chart-tab ${corrosionChartTab === "massLoss" ? "is-active" : ""}`}
+            onClick={() => setCorrosionChartTab("massLoss")}
+          >
+            ⚖️ Gravimetric Mass Loss (%) Curves
+          </button>
+        </div>
+
+        {corrosionChartTab === "ocp" ? (
+          <OcpChart selectedId={selected.id} />
+        ) : (
+          <MassLossChart selectedId={selected.id} />
+        )}
+
         <details className="panel data-note data-note--panel"><summary>Data notes ({qualityIssues(selected).length})</summary><div className="quality-list">{qualityIssues(selected).map((issue) => <p key={issue}><span>!</span>{issue}</p>)}</div></details>
       </>
     );
@@ -469,11 +514,12 @@ export default function App() {
                 min="0"
                 max="100"
                 placeholder="—"
-                value={selected.microstructureScore ?? ""}
+                disabled={selected.microstructureStatus === "missing"}
+                value={selected.microstructureStatus === "missing" ? "" : selected.microstructureScore ?? ""}
                 onChange={(event) => updateExperiment(selected.id, { microstructureScore: numericValue(event.target.value) })}
               />
             </div>
-            {selected.microstructureStatus === "missing" && <p className="inline-warning">Assigning a score without evidence coverage is not recommended.</p>}
+            {selected.microstructureStatus === "missing" && <p className="inline-warning">Add evidence before assigning a score.</p>}
             <label className="form-label visual-note">Visual note
               <textarea rows={3} value={selected.visualInspection} onChange={(event) => updateExperiment(selected.id, { visualInspection: event.target.value })} />
             </label>
@@ -494,6 +540,7 @@ export default function App() {
             <details className="data-note"><summary>How the hardness score works</summary><p>It measures the spread across the three zones. Change the limit in Scores.</p></details>
           </article>
         </section>
+        <EdsChart selectedId={selected.id} />
       </>
     );
   };
@@ -533,6 +580,12 @@ export default function App() {
           <details className="data-note"><summary>How scores work</summary><p>Lower corrosion rates and a smaller hardness spread score higher. Microstructure is entered from your reviewed evidence.</p></details>
         </article>
       </section>
+      <PerformanceRadar
+        selected={selected}
+        selectedScore={scores.get(selected.id)!}
+        leader={compositeLeader}
+        leaderScore={scores.get(compositeLeader?.id ?? "")}
+      />
       {totalWeight !== 100 && <p className="model-warning">Set weights to exactly 100% before a full composite score can be calculated.</p>}
       <section className="panel score-table-panel">
         <div className="panel-heading">
@@ -548,11 +601,11 @@ export default function App() {
             return (
               <button key={experiment.id} className="score-table__row" onClick={() => openExperiment(experiment.id)}>
                 <span><ProcessMark process={experiment.process} /><strong>{experiment.current} A</strong></span>
-                <span className="score-cell"><b>{formatScore(result.corrosion)}</b><ScoreBar score={result.corrosion} /></span>
-                <span className="score-cell"><b>{formatScore(result.hardness)}</b><ScoreBar score={result.hardness} muted /></span>
-                <span className="score-cell"><b>{formatScore(result.microstructure)}</b><ScoreBar score={result.microstructure} muted /></span>
-                <span className="composite-cell"><b>{formatScore(result.composite)}</b>{result.composite === null && result.provisional !== null && <small>Provisional: {Math.round(result.provisional)}</small>}</span>
-                <span className="readiness-number">{result.completedFactors}/{result.totalFactors}</span>
+                <span className="score-cell" data-label="Corrosion"><b>{formatScore(result.corrosion)}</b><ScoreBar score={result.corrosion} /></span>
+                <span className="score-cell" data-label="Hardness"><b>{formatScore(result.hardness)}</b><ScoreBar score={result.hardness} muted /></span>
+                <span className="score-cell" data-label="Microstructure"><b>{formatScore(result.microstructure)}</b><ScoreBar score={result.microstructure} muted /></span>
+                <span className="composite-cell" data-label="Composite"><b>{formatScore(result.composite)}</b>{result.composite === null && result.provisional !== null && <small>Provisional: {Math.round(result.provisional)}</small>}</span>
+                <span className="readiness-number" data-label="Ready">{result.completedFactors}/{result.totalFactors}</span>
               </button>
             );
           })}
@@ -642,8 +695,8 @@ function WeightControl({ label, description, value, color, onChange }: { label: 
 function HardnessProfileChart({ profile }: { profile: Experiment["hardness"] }) {
   const zones = [["Base metal", profile.baseMetal], ["HAZ", profile.haz], ["Fusion zone", profile.fusionZone]] as const;
   const values = zones.map(([, value]) => value).filter((value): value is number => typeof value === "number");
-  const max = values.length ? Math.max(...values, 250) : 250;
-  return <div className="hardness-chart" aria-label="Hardness profile chart">{zones.map(([zone, value]) => <div key={zone}><span>{zone}</span><div className="hardness-chart__track"><i style={{ height: value ? `${(value / max) * 100}%` : "0%" }} /></div><b>{value ?? "—"}</b></div>)}</div>;
+  const max = values.length ? Math.max(...values) * 1.1 : 1;
+  return <div className="hardness-chart" aria-label="Hardness profile chart">{zones.map(([zone, value]) => <div className="hardness-chart__row" key={zone}><span>{zone}</span><div className="hardness-chart__track"><i style={{ width: value ? `${(value / max) * 100}%` : "0%" }} /></div><b>{value ?? "—"}</b></div>)}</div>;
 }
 
 function NewExperimentForm({ onCancel, onCreate }: { onCancel: () => void; onCreate: (experiment: Experiment) => void }) {

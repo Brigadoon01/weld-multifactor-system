@@ -26,7 +26,8 @@ export function scoreExperiment(
   const factors = {
     corrosion: corrosionScore(experiment.corrosionRate, corrosionCeiling),
     hardness: hardnessScore(experiment, allowableHardnessSpread),
-    microstructure: experiment.microstructureScore,
+    microstructure:
+      experiment.microstructureStatus === "missing" ? null : experiment.microstructureScore,
   };
   const entries = Object.entries(factors) as Array<[keyof ScoringWeights, number | null]>;
   const available = entries.filter(([, score]) => score !== null);
@@ -64,11 +65,26 @@ export function calculateCorrosionRate(
   return (massLossMg / areaMm2 / durationDays) * 365;
 }
 
+export function calculateMassLossPercent(initialMass: number | null, finalMass: number | null) {
+  if (
+    initialMass === null ||
+    finalMass === null ||
+    initialMass <= 0 ||
+    finalMass < 0 ||
+    finalMass > initialMass
+  ) {
+    return null;
+  }
+  return ((initialMass - finalMass) / initialMass) * 100;
+}
+
 export function qualityIssues(experiment: Experiment) {
   const issues = [...experiment.sourceWarnings];
   if (experiment.corrosionRate === null) issues.push("No corrosion rate has been recorded.");
   if (hardnessScore(experiment) === null) issues.push("A three-zone hardness profile is required for the hardness factor.");
-  if (experiment.microstructureScore === null)
+  if (experiment.microstructureStatus === "missing")
+    issues.push("Microstructural evidence is marked as missing.");
+  else if (experiment.microstructureScore === null)
     issues.push("No rubric score has been assigned to the available microstructural evidence.");
   return [...new Set(issues)];
 }
