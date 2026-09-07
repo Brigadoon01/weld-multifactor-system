@@ -13,6 +13,8 @@ import { OcpChart } from "./components/OcpChart";
 import { MassLossChart } from "./components/MassLossChart";
 import { EdsChart } from "./components/EdsChart";
 import { PerformanceRadar } from "./components/PerformanceRadar";
+import { AddWeldModal } from "./components/AddWeldModal";
+import { ComparisonModal } from "./components/ComparisonModal";
 
 type View = "overview" | "registry" | "corrosion" | "evidence" | "scoring" | "report";
 
@@ -112,10 +114,25 @@ export default function App() {
   const [weights, setWeights] = useState<ScoringWeights>(defaultWeights);
   const [corrosionCeiling, setCorrosionCeiling] = useState(40);
   const [hardnessSpreadLimit, setHardnessSpreadLimit] = useState(50);
-  const [showNewExperiment, setShowNewExperiment] = useState(false);
   const [importMessage, setImportMessage] = useState("");
   const [corrosionChartTab, setCorrosionChartTab] = useState<"ocp" | "massLoss">("ocp");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [compareConditionA, setCompareConditionA] = useState<string | undefined>(undefined);
+  const [compareConditionB, setCompareConditionB] = useState<string | undefined>(undefined);
   const importInput = useRef<HTMLInputElement>(null);
+
+  const handleOpenCompare = (condA?: string, condB?: string) => {
+    setCompareConditionA(condA || selectedId);
+    setCompareConditionB(condB || (selectedId === "smaw-170" ? "control" : "smaw-170"));
+    setIsCompareModalOpen(true);
+  };
+
+  const handleAddNewWeld = (newExp: Experiment) => {
+    setExperiments((prev) => [newExp, ...prev]);
+    setSelectedId(newExp.id);
+    setActiveView("overview");
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -274,6 +291,14 @@ export default function App() {
           <span className="eyebrow">AISI 304 weld comparison</span>
           <h1>Weld results at a glance</h1>
           <p>Choose a condition to view its measurements, evidence, and score.</p>
+          <div style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}>
+            <button className="primary-button" onClick={() => setIsAddModalOpen(true)}>
+              + Add Your Own Weld Coupon
+            </button>
+            <button className="secondary-button" onClick={() => handleOpenCompare()}>
+              ⚔️ Side-by-Side Comparison
+            </button>
+          </div>
         </div>
       </section>
 
@@ -338,22 +363,17 @@ export default function App() {
         <div>
           <span className="eyebrow">Weld conditions</span>
           <h1>Tests</h1>
-          <p>Add, review, or open a condition.</p>
+          <p>Add, review, benchmark, or open a condition.</p>
         </div>
-        <button className="primary-button" onClick={() => setShowNewExperiment((visible) => !visible)}>
-          <span>＋</span> {showNewExperiment ? "Close form" : "Add condition"}
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button className="secondary-button" onClick={() => handleOpenCompare()}>
+            ⚔️ Compare Conditions
+          </button>
+          <button className="primary-button" onClick={() => setIsAddModalOpen(true)}>
+            <span>＋</span> Add condition
+          </button>
+        </div>
       </section>
-      {showNewExperiment && (
-        <NewExperimentForm
-          onCancel={() => setShowNewExperiment(false)}
-          onCreate={(experiment) => {
-            setExperiments((current) => [...current, experiment]);
-            setSelectedId(experiment.id);
-            setShowNewExperiment(false);
-          }}
-        />
-      )}
       <section className="panel table-panel">
         <div className="table-scroll">
           <table>
@@ -379,7 +399,20 @@ export default function App() {
                   <td>{formatRate(experiment.corrosionRate)}</td>
                   <td>{experiment.finalMeasurementDay ? `Day ${experiment.finalMeasurementDay}` : "—"}</td>
                   <td><StatusPill status={experiment.microstructureStatus} /></td>
-                  <td><button className="row-action" onClick={() => openExperiment(experiment.id, "corrosion")}>Open <span>→</span></button></td>
+                  <td>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                      <button
+                        className="row-action"
+                        style={{ background: "#f0f7f4", color: "#1b9956" }}
+                        onClick={() => handleOpenCompare(experiment.id)}
+                      >
+                        ⚔️ Compare
+                      </button>
+                      <button className="row-action" onClick={() => openExperiment(experiment.id, "corrosion")}>
+                        Open <span>→</span>
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -673,9 +706,40 @@ export default function App() {
       <main className="main-content">
         <header className="topbar">
           <div className="breadcrumb"><strong>{navigation.find((item) => item.id === activeView)?.label}</strong></div>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              className="secondary-button"
+              style={{ padding: "6px 12px", fontSize: "12px" }}
+              onClick={() => handleOpenCompare()}
+            >
+              ⚔️ Benchmark & Compare
+            </button>
+            <button
+              className="primary-button"
+              style={{ padding: "6px 14px", fontSize: "12px" }}
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              + Add Your Weld
+            </button>
+          </div>
         </header>
         <div className="content-wrap">{content}</div>
       </main>
+
+      <AddWeldModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddNewWeld}
+      />
+
+      <ComparisonModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        experiments={experiments}
+        scores={scores}
+        initialConditionAId={compareConditionA}
+        initialConditionBId={compareConditionB}
+      />
     </div>
   );
 }
@@ -697,18 +761,6 @@ function HardnessProfileChart({ profile }: { profile: Experiment["hardness"] }) 
   const values = zones.map(([, value]) => value).filter((value): value is number => typeof value === "number");
   const max = values.length ? Math.max(...values) * 1.1 : 1;
   return <div className="hardness-chart" aria-label="Hardness profile chart">{zones.map(([zone, value]) => <div className="hardness-chart__row" key={zone}><span>{zone}</span><div className="hardness-chart__track"><i style={{ width: value ? `${(value / max) * 100}%` : "0%" }} /></div><b>{value ?? "—"}</b></div>)}</div>;
-}
-
-function NewExperimentForm({ onCancel, onCreate }: { onCancel: () => void; onCreate: (experiment: Experiment) => void }) {
-  const [specimen, setSpecimen] = useState("New weld condition");
-  const [process, setProcess] = useState<Process>("SMAW");
-  const [current, setCurrent] = useState("160");
-  const [travelSpeed, setTravelSpeed] = useState("");
-  const create = () => {
-    const id = typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `record-${Date.now()}`;
-    onCreate({ id, specimen: specimen.trim() || "New weld condition", process, current: numericValue(current), travelSpeed: numericValue(travelSpeed), initialMass: null, finalMass: null, massLossPercent: null, corrosionRate: null, finalMeasurementDay: null, ocpMonitoredToDay: null, microstructureStatus: "missing", microstructureScore: null, microstructureNote: "", hardness: {}, visualInspection: "", sourceWarnings: ["New local record: verify all values before comparison."] });
-  };
-  return <section className="panel new-form"><div className="panel-heading"><div><span className="eyebrow">New local record</span><h2>Add a test condition</h2></div></div><div className="new-form__grid"><label className="form-label">Specimen name<input value={specimen} onChange={(event) => setSpecimen(event.target.value)} /></label><label className="form-label">Process<select value={process} onChange={(event) => setProcess(event.target.value as Process)}><option value="SMAW">SMAW</option><option value="GMAW">GMAW</option><option value="Control">Control</option></select></label><label className="form-label">Current (A)<input type="number" value={current} onChange={(event) => setCurrent(event.target.value)} /></label><label className="form-label">Travel speed (mm/s)<input type="number" step="any" value={travelSpeed} onChange={(event) => setTravelSpeed(event.target.value)} /></label></div><div className="form-actions"><button className="secondary-button" onClick={onCancel}>Cancel</button><button className="primary-button" onClick={create}>Create condition</button></div></section>;
 }
 
 function calculatePenetrationRate(initialMass: number | null, finalMass: number | null, areaMm2: number, durationDays: number) {
