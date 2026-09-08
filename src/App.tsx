@@ -15,6 +15,7 @@ import { EdsChart } from "./components/EdsChart";
 import { PerformanceRadar } from "./components/PerformanceRadar";
 import { AddWeldModal } from "./components/AddWeldModal";
 import { ComparisonModal } from "./components/ComparisonModal";
+import { Modal } from "./components/Modal";
 import {
   IconDashboard,
   IconTests,
@@ -29,6 +30,7 @@ import {
   IconScale,
   IconPrinter,
   IconInbox,
+  IconTrash,
 } from "./components/Icons";
 
 type View = "overview" | "registry" | "corrosion" | "evidence" | "scoring" | "report";
@@ -137,6 +139,7 @@ export default function App() {
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [compareConditionA, setCompareConditionA] = useState<string | undefined>(undefined);
   const [compareConditionB, setCompareConditionB] = useState<string | undefined>(undefined);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
 
   const handleOpenCompare = (condA?: string, condB?: string) => {
@@ -150,6 +153,23 @@ export default function App() {
     setSelectedId(newExp.id);
     setActiveView("overview");
   };
+
+  const handleDeleteExperiment = (idToDelete: string) => {
+    const updated = experiments.filter((e) => e.id !== idToDelete);
+    setExperiments(updated);
+    if (selectedId === idToDelete) {
+      setSelectedId(updated[0]?.id ?? "");
+    }
+    if (compareConditionA === idToDelete) {
+      setCompareConditionA(updated[0]?.id ?? undefined);
+    }
+    if (compareConditionB === idToDelete) {
+      setCompareConditionB(updated[1]?.id ?? updated[0]?.id ?? undefined);
+    }
+    setConfirmDeleteId(null);
+  };
+
+  const experimentToDelete = experiments.find((e) => e.id === confirmDeleteId);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -414,53 +434,84 @@ export default function App() {
         </div>
       </section>
       <section className="panel table-panel">
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Condition</th>
-                <th>Current</th>
-                <th>Travel speed</th>
-                <th>Mass loss</th>
-                <th>Corrosion rate</th>
-                <th>Final reading</th>
-                <th>Evidence</th>
-                <th aria-label="Open record" />
-              </tr>
-            </thead>
-            <tbody>
-              {experiments.map((experiment) => (
-                <tr key={experiment.id} className={experiment.id === selected?.id ? "is-selected" : ""}>
-                  <td><ProcessMark process={experiment.process} /><strong>{experiment.current ? ` ${experiment.current} A` : " Reference"}</strong></td>
-                  <td>{experiment.current ? `${experiment.current} A` : "—"}</td>
-                  <td>{experiment.travelSpeed ? `${experiment.travelSpeed.toFixed(2)} mm/s` : "—"}</td>
-                  <td>{formatPercent(experiment.massLossPercent)}</td>
-                  <td>{formatRate(experiment.corrosionRate)}</td>
-                  <td>{experiment.finalMeasurementDay ? `Day ${experiment.finalMeasurementDay}` : "—"}</td>
-                  <td><StatusPill status={experiment.microstructureStatus} /></td>
-                  <td>
-                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                      <button
-                        className="row-action"
-                        style={{ background: "#f0f7f4", color: "#1b9956", display: "inline-flex", alignItems: "center", gap: "4px" }}
-                        onClick={() => handleOpenCompare(experiment.id)}
-                      >
-                        <IconCompare size={13} /> Compare
-                      </button>
-                      <button
-                        className="row-action"
-                        onClick={() => openExperiment(experiment.id, "corrosion")}
-                        style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
-                      >
-                        Open <IconArrowRight size={13} />
-                      </button>
-                    </div>
-                  </td>
+        {experiments.length === 0 ? (
+          <div style={{ padding: "48px 24px", textAlign: "center" }}>
+            <EmptyState
+              title="No weld conditions"
+              text="All weld conditions have been removed. Add your own weld condition or restore the default starter data."
+            />
+            <div style={{ marginTop: "16px", display: "flex", gap: "10px", justifyContent: "center" }}>
+              <button
+                className="primary-button"
+                onClick={() => setIsAddModalOpen(true)}
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+              >
+                <IconPlus size={14} /> Add Your Weld
+              </button>
+              <button className="secondary-button" onClick={resetResearchData}>
+                Restore Starter Research Data
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Condition</th>
+                  <th>Current</th>
+                  <th>Travel speed</th>
+                  <th>Mass loss</th>
+                  <th>Corrosion rate</th>
+                  <th>Final reading</th>
+                  <th>Evidence</th>
+                  <th aria-label="Actions" style={{ textAlign: "right" }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {experiments.map((experiment) => (
+                  <tr key={experiment.id} className={experiment.id === selected?.id ? "is-selected" : ""}>
+                    <td><ProcessMark process={experiment.process} /><strong>{experiment.current ? ` ${experiment.current} A` : " Reference"}</strong></td>
+                    <td>{experiment.current ? `${experiment.current} A` : "—"}</td>
+                    <td>{experiment.travelSpeed ? `${experiment.travelSpeed.toFixed(2)} mm/s` : "—"}</td>
+                    <td>{formatPercent(experiment.massLossPercent)}</td>
+                    <td>{formatRate(experiment.corrosionRate)}</td>
+                    <td>{experiment.finalMeasurementDay ? `Day ${experiment.finalMeasurementDay}` : "—"}</td>
+                    <td><StatusPill status={experiment.microstructureStatus} /></td>
+                    <td>
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center", justifyContent: "flex-end" }}>
+                        <button
+                          className="row-action"
+                          style={{ background: "#f0f7f4", color: "#1b9956", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                          onClick={() => handleOpenCompare(experiment.id)}
+                          title="Compare with another condition"
+                        >
+                          <IconCompare size={13} /> Compare
+                        </button>
+                        <button
+                          className="row-action"
+                          onClick={() => openExperiment(experiment.id, "corrosion")}
+                          style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
+                          title="Open corrosion measurements"
+                        >
+                          Open <IconArrowRight size={13} />
+                        </button>
+                        <button
+                          className="row-action"
+                          style={{ background: "#fdf2f2", color: "#dc2626", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                          onClick={() => setConfirmDeleteId(experiment.id)}
+                          title={`Remove ${experiment.specimen}`}
+                        >
+                          <IconTrash size={13} /> Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </>
   );
@@ -488,7 +539,17 @@ export default function App() {
               <div>
                 <h2>{selected.specimen}</h2>
               </div>
-              <ProcessMark process={selected.process} />
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <ProcessMark process={selected.process} />
+                <button
+                  className="secondary-button"
+                  style={{ color: "#dc2626", borderColor: "#fecaca", padding: "4px 8px", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                  onClick={() => setConfirmDeleteId(selected.id)}
+                  title={`Remove ${selected.specimen}`}
+                >
+                  <IconTrash size={12} /> Remove
+                </button>
+              </div>
             </div>
             <div className="form-grid">
               <NumberField label="Initial mass" suffix="g" value={selected.initialMass} onChange={(value) => updateExperiment(selected.id, { initialMass: numericValue(value) })} />
@@ -570,7 +631,17 @@ export default function App() {
               <div>
                 <h2>Microstructure</h2>
               </div>
-              <StatusPill status={selected.microstructureStatus} />
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <StatusPill status={selected.microstructureStatus} />
+                <button
+                  className="secondary-button"
+                  style={{ color: "#dc2626", borderColor: "#fecaca", padding: "4px 8px", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                  onClick={() => setConfirmDeleteId(selected.id)}
+                  title={`Remove ${selected.specimen}`}
+                >
+                  <IconTrash size={12} /> Remove
+                </button>
+              </div>
             </div>
             <label className="form-label">Evidence coverage
               <select value={selected.microstructureStatus} onChange={(event) => updateExperiment(selected.id, { microstructureStatus: event.target.value as EvidenceStatus })}>
@@ -791,6 +862,38 @@ export default function App() {
         initialConditionAId={compareConditionA}
         initialConditionBId={compareConditionB}
       />
+
+      <Modal
+        isOpen={confirmDeleteId !== null}
+        onClose={() => setConfirmDeleteId(null)}
+        title="Remove Weld Condition?"
+        maxWidth="460px"
+      >
+        <div style={{ padding: "4px 0" }}>
+          <p style={{ fontSize: "14px", color: "#2a4049", lineHeight: "1.6", margin: "0 0 14px 0" }}>
+            Are you sure you want to remove <strong>{experimentToDelete?.specimen}</strong> ({experimentToDelete?.process}{experimentToDelete?.current ? ` ${experimentToDelete.current} A` : ""})?
+          </p>
+          <div style={{ fontSize: "12px", color: "#62747b", background: "#f8faf9", padding: "12px 14px", borderRadius: "8px", border: "1px solid #e1e9e5", lineHeight: "1.5" }}>
+            This will remove this sample from the active benchmark registry, including its corrosion rates, gravimetric data, hardness profile, and composite scores.
+            <br /><br />
+            <em>Note: You can restore default research data at any time from the Export view.</em>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "20px" }}>
+            <button className="secondary-button" onClick={() => setConfirmDeleteId(null)}>
+              Cancel
+            </button>
+            <button
+              className="primary-button"
+              style={{ background: "#dc2626", borderColor: "#dc2626", color: "#fff", display: "inline-flex", alignItems: "center", gap: "6px" }}
+              onClick={() => {
+                if (confirmDeleteId) handleDeleteExperiment(confirmDeleteId);
+              }}
+            >
+              <IconTrash size={14} /> Remove Condition
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
