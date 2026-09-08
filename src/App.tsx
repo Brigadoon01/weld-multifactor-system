@@ -15,18 +15,33 @@ import { EdsChart } from "./components/EdsChart";
 import { PerformanceRadar } from "./components/PerformanceRadar";
 import { AddWeldModal } from "./components/AddWeldModal";
 import { ComparisonModal } from "./components/ComparisonModal";
+import {
+  IconDashboard,
+  IconTests,
+  IconCorrosion,
+  IconEvidence,
+  IconScores,
+  IconExport,
+  IconCompare,
+  IconPlus,
+  IconArrowRight,
+  IconLineChart,
+  IconScale,
+  IconPrinter,
+  IconInbox,
+} from "./components/Icons";
 
 type View = "overview" | "registry" | "corrosion" | "evidence" | "scoring" | "report";
 
 const STORAGE_KEY = "weldscope-research-lab-v8";
 
-const navigation: Array<{ id: View; label: string; icon: string }> = [
-  { id: "overview", label: "Dashboard", icon: "▦" },
-  { id: "registry", label: "Tests", icon: "◫" },
-  { id: "corrosion", label: "Corrosion", icon: "◒" },
-  { id: "evidence", label: "Evidence", icon: "⌁" },
-  { id: "scoring", label: "Scores", icon: "◎" },
-  { id: "report", label: "Export", icon: "▤" },
+const navigation: Array<{ id: View; label: string; icon: React.ReactNode }> = [
+  { id: "overview", label: "Dashboard", icon: <IconDashboard size={17} /> },
+  { id: "registry", label: "Tests", icon: <IconTests size={17} /> },
+  { id: "corrosion", label: "Corrosion", icon: <IconCorrosion size={17} /> },
+  { id: "evidence", label: "Evidence", icon: <IconEvidence size={17} /> },
+  { id: "scoring", label: "Scores", icon: <IconScores size={17} /> },
+  { id: "report", label: "Export", icon: <IconExport size={17} /> },
 ];
 
 const sourceNotice = "Your data stays in this browser.";
@@ -100,7 +115,9 @@ function ScoreBar({ score, muted = false }: { score: number | null; muted?: bool
 function EmptyState({ title, text }: { title: string; text: string }) {
   return (
     <div className="empty-state">
-      <span>⌁</span>
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", opacity: 0.6 }}>
+        <IconInbox size={32} />
+      </span>
       <h3>{title}</h3>
       <p>{text}</p>
     </div>
@@ -292,11 +309,19 @@ export default function App() {
           <h1>Weld results at a glance</h1>
           <p>Choose a condition to view its measurements, evidence, and score.</p>
           <div style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}>
-            <button className="primary-button" onClick={() => setIsAddModalOpen(true)}>
-              + Add Your Own Weld Coupon
+            <button
+              className="primary-button"
+              onClick={() => setIsAddModalOpen(true)}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              <IconPlus size={16} /> Add Your Own Weld Coupon
             </button>
-            <button className="secondary-button" onClick={() => handleOpenCompare()}>
-              ⚔️ Side-by-Side Comparison
+            <button
+              className="secondary-button"
+              onClick={() => handleOpenCompare()}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              <IconCompare size={16} /> Side-by-Side Comparison
             </button>
           </div>
         </div>
@@ -351,7 +376,13 @@ export default function App() {
               ? "Complete the missing inputs to calculate its final score."
               : `Composite score: ${formatScore(corrosionLeaderScore?.composite ?? null)} / 100.`}
           </p>
-          <button className="text-action" onClick={() => openExperiment(corrosionLeader?.id ?? selectedId)}>View condition <span>→</span></button>
+          <button
+            className="text-action"
+            onClick={() => openExperiment(corrosionLeader?.id ?? selectedId)}
+            style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
+          >
+            View condition <IconArrowRight size={14} />
+          </button>
         </article>
       </section>
     </>
@@ -366,11 +397,19 @@ export default function App() {
           <p>Add, review, benchmark, or open a condition.</p>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
-          <button className="secondary-button" onClick={() => handleOpenCompare()}>
-            ⚔️ Compare Conditions
+          <button
+            className="secondary-button"
+            onClick={() => handleOpenCompare()}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+          >
+            <IconCompare size={14} /> Compare Conditions
           </button>
-          <button className="primary-button" onClick={() => setIsAddModalOpen(true)}>
-            <span>＋</span> Add condition
+          <button
+            className="primary-button"
+            onClick={() => setIsAddModalOpen(true)}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+          >
+            <IconPlus size={14} /> Add condition
           </button>
         </div>
       </section>
@@ -403,13 +442,17 @@ export default function App() {
                     <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                       <button
                         className="row-action"
-                        style={{ background: "#f0f7f4", color: "#1b9956" }}
+                        style={{ background: "#f0f7f4", color: "#1b9956", display: "inline-flex", alignItems: "center", gap: "4px" }}
                         onClick={() => handleOpenCompare(experiment.id)}
                       >
-                        ⚔️ Compare
+                        <IconCompare size={13} /> Compare
                       </button>
-                      <button className="row-action" onClick={() => openExperiment(experiment.id, "corrosion")}>
-                        Open <span>→</span>
+                      <button
+                        className="row-action"
+                        onClick={() => openExperiment(experiment.id, "corrosion")}
+                        style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
+                      >
+                        Open <IconArrowRight size={13} />
                       </button>
                     </div>
                   </td>
@@ -484,14 +527,16 @@ export default function App() {
           <button
             className={`chart-tab ${corrosionChartTab === "ocp" ? "is-active" : ""}`}
             onClick={() => setCorrosionChartTab("ocp")}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            📈 28-Day OCP Potential Curves (mV vs. SCE)
+            <IconLineChart size={15} /> 28-Day OCP Potential Curves (mV vs. SCE)
           </button>
           <button
             className={`chart-tab ${corrosionChartTab === "massLoss" ? "is-active" : ""}`}
             onClick={() => setCorrosionChartTab("massLoss")}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            ⚖️ Gravimetric Mass Loss (%) Curves
+            <IconScale size={15} /> Gravimetric Mass Loss (%) Curves
           </button>
         </div>
 
@@ -655,7 +700,13 @@ export default function App() {
           <h1>Export</h1>
           <p>Download or restore your local data.</p>
         </div>
-        <button className="primary-button" onClick={() => window.print()}><span>⌑</span> Print summary</button>
+        <button
+          className="primary-button"
+          onClick={() => window.print()}
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+        >
+          <IconPrinter size={16} /> Print summary
+        </button>
       </section>
       <section className="report-layout">
         <article className="panel report-card">
@@ -709,17 +760,17 @@ export default function App() {
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
             <button
               className="secondary-button"
-              style={{ padding: "6px 12px", fontSize: "12px" }}
+              style={{ padding: "6px 12px", fontSize: "12px", display: "inline-flex", alignItems: "center", gap: "6px" }}
               onClick={() => handleOpenCompare()}
             >
-              ⚔️ Benchmark & Compare
+              <IconCompare size={14} /> Benchmark &amp; Compare
             </button>
             <button
               className="primary-button"
-              style={{ padding: "6px 14px", fontSize: "12px" }}
+              style={{ padding: "6px 14px", fontSize: "12px", display: "inline-flex", alignItems: "center", gap: "6px" }}
               onClick={() => setIsAddModalOpen(true)}
             >
-              + Add Your Weld
+              <IconPlus size={14} /> Add Your Weld
             </button>
           </div>
         </header>

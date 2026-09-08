@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { IconClose } from "./Icons";
 
 interface ModalProps {
   isOpen: boolean;
@@ -58,7 +59,7 @@ export const Modal: React.FC<ModalProps> = ({
             onClick={onClose}
             aria-label="Close modal"
           >
-            ✕
+            <IconClose size={16} />
           </button>
         </header>
 

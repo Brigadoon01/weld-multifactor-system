@@ -36,7 +36,7 @@ button:disabled { cursor: not-allowed; opacity: .52; }
 .nav-item { color: #a8bbc3; border: 0; background: transparent; text-align: left; border-radius: 9px; padding: 10px; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 12px; }
 .nav-item:hover { background: #122632; color: #fff; }
 .nav-item.is-active { background: #173340; color: #f7fbfb; }
-.nav-item span { width: 17px; color: #9ad5cc; text-align: center; font-size: 17px; font-weight: 400; }
+.nav-item span { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; color: #9ad5cc; text-align: center; }
 .nav-item.is-active span { color: #d7ff64; }
 .sidebar-footer { margin-top: auto; padding: 16px 10px 0; border-top: 1px solid #223640; }
 .sidebar-footer span { font-size: 10px; color: #d7ff64; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; }

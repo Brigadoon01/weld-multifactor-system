@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Modal } from "./Modal";
+import { IconArrowLeft, IconArrowRight, IconCheck } from "./Icons";
 import type { EvidenceStatus, Experiment, Process } from "../types";
 import { calculateCorrosionRate, calculateMassLossPercent, hardnessScore } from "../scoring";
 
@@ -343,8 +344,9 @@ export const AddWeldModal: React.FC<AddWeldModalProps> = ({ isOpen, onClose, onA
                 if (activeTab === "hardness") setActiveTab("corrosion");
                 if (activeTab === "micro") setActiveTab("hardness");
               }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
-              ← Back
+              <IconArrowLeft size={14} /> Back
             </button>
           )}
         </div>
@@ -361,12 +363,17 @@ export const AddWeldModal: React.FC<AddWeldModalProps> = ({ isOpen, onClose, onA
                 else if (activeTab === "corrosion") setActiveTab("hardness");
                 else if (activeTab === "hardness") setActiveTab("micro");
               }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
-              Next Step →
+              Next Step <IconArrowRight size={14} />
             </button>
           ) : (
-            <button className="primary-button primary-button--accent" onClick={handleCreate}>
-              ✓ Save & Benchmark Weld
+            <button
+              className="primary-button primary-button--accent"
+              onClick={handleCreate}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              <IconCheck size={16} /> Save &amp; Benchmark Weld
             </button>
           )}
         </div>
